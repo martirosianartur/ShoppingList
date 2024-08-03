@@ -32,6 +32,7 @@ class _NewItemState extends State<NewItem> {
               },
             ), // instead of TextField()
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextFormField(
