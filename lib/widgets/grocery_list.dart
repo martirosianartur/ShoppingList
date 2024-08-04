@@ -74,19 +74,31 @@ class _GroceryListState extends State<GroceryList> {
     setState(() {
       _groceryItems.add(newItem);
     });
-
-    // if (newItem == null) {
-    //   return;
-    // }
-    // setState(() {
-    //   _groceryItems.add(newItem);
-    // });
   }
 
-  void _removeItem(GroceryItem item) {
+  void _removeItem(GroceryItem item) async {
+    final index = _groceryItems.indexOf(item);
     setState(() {
       _groceryItems.remove(item);
     });
+
+    final url = Uri.https('shopping-list-dd76d-default-rtdb.firebaseio.com',
+        'shopping-list/${item.id}.json');
+
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      setState(() {
+        _groceryItems.insert(index, item);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Could not detele the item. Status code was: ${response.statusCode}. Please try again later.'),
+        ),
+      );
+    }
   }
 
   @override
