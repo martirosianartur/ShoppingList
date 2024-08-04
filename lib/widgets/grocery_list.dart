@@ -37,6 +37,15 @@ class _GroceryListState extends State<GroceryList> {
       });
     }
 
+    // No data available in DB
+    if (response.body == 'null') {
+      setState(() {
+        // get read of loading indicator if we hav got no data from backend.
+        _isLoading = false;
+      });
+      return;
+    }
+
     final Map<String, dynamic> listData = jsonDecode(response.body);
     final List<GroceryItem> loadedItems = [];
     for (final item in listData.entries) {
