@@ -28,43 +28,51 @@ class _GroceryListState extends State<GroceryList> {
   void _loadItens() async {
     final url = Uri.https('shopping-list-dd76d-default-rtdb.firebaseio.com',
         'shopping-list.json');
-    final Response response = await http.get(url);
 
-    if (response.statusCode >= 400) {
-      setState(() {
-        _error =
-            'Failed to fetch data. Error code: ${response.statusCode}. Please try again later.';
-      });
-    }
+    try {
+      final Response response = await http.get(url);
 
-    // No data available in DB
-    if (response.body == 'null') {
+      if (response.statusCode >= 400) {
+        setState(() {
+          _error =
+              'Failed to fetch data. Error code: ${response.statusCode}. Please try again later.';
+        });
+      }
+
+      // No data available in DB
+      if (response.body == 'null') {
+        setState(() {
+          // get read of loading indicator if we hav got no data from backend.
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final Map<String, dynamic> listData = jsonDecode(response.body);
+      final List<GroceryItem> loadedItems = [];
+      for (final item in listData.entries) {
+        final category = categories.entries
+            .firstWhere((categoryItem) =>
+                categoryItem.value.title == item.value['category'])
+            .value;
+        loadedItems.add(
+          GroceryItem(
+              id: item.key,
+              name: item.value['name'],
+              quantity: item.value['quantity'],
+              category: category),
+        );
+      }
       setState(() {
-        // get read of loading indicator if we hav got no data from backend.
+        _groceryItems = loadedItems;
         _isLoading = false;
       });
-      return;
+    } catch (error) {
+      setState(() {
+        _error =
+            'Failed to fetch data. Error meesage: $error. Please try again later.';
+      });
     }
-
-    final Map<String, dynamic> listData = jsonDecode(response.body);
-    final List<GroceryItem> loadedItems = [];
-    for (final item in listData.entries) {
-      final category = categories.entries
-          .firstWhere((categoryItem) =>
-              categoryItem.value.title == item.value['category'])
-          .value;
-      loadedItems.add(
-        GroceryItem(
-            id: item.key,
-            name: item.value['name'],
-            quantity: item.value['quantity'],
-            category: category),
-      );
-    }
-    setState(() {
-      _groceryItems = loadedItems;
-      _isLoading = false;
-    });
   }
 
   void _addItem() async {
